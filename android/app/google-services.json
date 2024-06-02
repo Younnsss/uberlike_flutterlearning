@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "521755054690",
+    "project_id": "uber-fad71",
+    "storage_bucket": "uber-fad71.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521755054690:android:f8c992a18d3c808643f73b",
+        "android_client_info": {
+          "package_name": "com.example.uberlike_flutterlearning"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAARJkRFbEGeaDMYOEQNGLh5UpMGWVdS1s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
