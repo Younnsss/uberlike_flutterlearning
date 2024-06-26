@@ -7,6 +7,7 @@ import 'package:uberlike_flutterlearning/models/association.dart';
 import 'package:uberlike_flutterlearning/models/post.dart';
 import 'package:uberlike_flutterlearning/screens/view_post.dart';
 import 'firebase_options.dart';
+import 'package:mastodon_oauth2/mastodon_oauth2.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

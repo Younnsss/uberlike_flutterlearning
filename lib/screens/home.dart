@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mastodon_api/mastodon_api.dart';
+import 'package:mastodon_oauth2/mastodon_oauth2.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uberlike_flutterlearning/database.dart';
 import 'package:uberlike_flutterlearning/models/association.dart';
 import 'package:uberlike_flutterlearning/models/post.dart';
@@ -8,6 +11,8 @@ import 'package:uberlike_flutterlearning/models/produit.dart';
 import 'package:uberlike_flutterlearning/screens/create_post.dart';
 import 'package:uberlike_flutterlearning/screens/login.dart';
 import 'package:uberlike_flutterlearning/screens/view_post.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -423,7 +428,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             floatingActionButton: user != null
                 ? FloatingActionButton(
-                    onPressed: () {
+                    onPressed: () async {
                       // final products = [
                       //   Produit(
                       //     title: "Produit 2",
@@ -440,8 +445,76 @@ class _MyHomePageState extends State<MyHomePage> {
                       // ];
                       // Database().insertPost2(
                       //     "Post2", "Description 2", 123544949498, products);
-                      Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => CreatePost()));
+                      // Navigator.of(context).push(
+                      //     MaterialPageRoute(builder: (context) => CreatePost()));
+                      // final oauth2 = MastodonOAuth2Client(
+                      //   // Specify mastodon instance like "mastodon.social"
+                      //   instance: 'mastodon-fisa.h.minet.net',
+                      //   clientId: 'BirA6YtdpxQn11SFoXc1Rcdyiz6QtgknXz1koR5w3kw',
+                      //   clientSecret:
+                      //       'OfKIfMd8Coa00RipzMfhCvxbGHTs_hb4zB5bnBm1NQQ',
+                      //   redirectUri: 'org.example.oauth://callback/',
+                      //   customUriScheme: 'org.example.oauth',
+                      // );
+                      // final response = await oauth2.executeAuthCodeFlow(
+                      //   scopes: [
+                      //     Scope.read,
+                      //     Scope.write,
+                      //   ],
+                      // );
+                      // print(response.accessToken);
+
+                      final mastodon = MastodonApi(
+                        instance: 'mastodon-fisa.h.minet.net',
+                        bearerToken:
+                            'BzSWhFn_z-wmWSoLbDNzkYq-0ZD2HmqZiVeFnJzWxl4',
+
+                        //! Automatic retry is available when server error or network error occurs
+                        //! when communicating with the API.
+                        retryConfig: RetryConfig(
+                          maxAttempts: 5,
+                          jitter: Jitter(
+                            minInSeconds: 2,
+                            maxInSeconds: 5,
+                          ),
+                          onExecute: (event) => print(
+                            'Retry after ${event.intervalInSeconds} seconds... '
+                            '[${event.retryCount} times]',
+                          ),
+                        ),
+
+                        //! The default timeout is 10 seconds.
+                        timeout: Duration(seconds: 20),
+                      );
+                      try {
+                        final getImage = await http
+                            .get(Uri.parse('https://picsum.photos/200/300'));
+                        final directory = await getTemporaryDirectory();
+
+                        // Step 3: Write the image bytes to a file
+                        final imagePath =
+                            '${directory.path}/downloadedImage.jpg';
+                        final imageFile = File(imagePath);
+                        await imageFile.writeAsBytes(getImage.bodyBytes);
+                        final uploadImage = await mastodon.v2.media
+                            .uploadMedia(file: imageFile);
+                        final response =
+                            await mastodon.v1.statuses.createStatus(
+                          text: 'Toot2!',
+                          mediaIds: [uploadImage.data.id],
+                        );
+
+                        print(response.rateLimit);
+                        print(response.data);
+                      } on UnauthorizedException catch (e) {
+                        print(e);
+                      } on RateLimitExceededException catch (e) {
+                        print(e);
+                      } on MastodonException catch (e) {
+                        print(e.response);
+                        print(e.body);
+                        print(e);
+                      }
                     },
                     tooltip: 'Increment',
                     child: const Icon(Icons.add),
